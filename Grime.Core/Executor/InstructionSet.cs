@@ -282,9 +282,8 @@
         unsafe static ulong Op_0xCD(CPU cpu)
         {
             Console.WriteLine($"0xCD INT {*cpu.instructionPtr:X}");
-            InterruptTable.GetInterrupt(*cpu.instructionPtr++, cpu)(cpu);
             cpu.rip++;
-            return 0;
+            return InterruptTable.Execute(*cpu.instructionPtr++, cpu);
         }
 
         /// <summary>

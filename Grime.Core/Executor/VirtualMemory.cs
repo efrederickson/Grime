@@ -2,15 +2,8 @@
 {
     public readonly record struct PageKey(ulong VirtualAddress, ulong Size)
     {
-        public static implicit operator (ulong VirtualAddress, ulong Size)(PageKey value)
-        {
-            return (value.VirtualAddress, value.Size);
-        }
-
-        public static implicit operator PageKey((ulong VirtualAddress, ulong Size) value)
-        {
-            return new PageKey(value.VirtualAddress, value.Size);
-        }
+        public static implicit operator (ulong VirtualAddress, ulong Size)(PageKey value) => (value.VirtualAddress, value.Size);
+        public static implicit operator PageKey((ulong VirtualAddress, ulong Size) value) => new(value.VirtualAddress, value.Size);
     }
 
     /// <summary>
@@ -19,13 +12,9 @@
     public class VirtualMemory64
     {
         // Tuple<vaddr, memsz>
-        public Dictionary<PageKey, Page64> Pages { get; private set; }
+        public Dictionary<PageKey, Page64> Pages { get; private set; } = [];
 
-        public VirtualMemory64(Page64[] pages)
-        {
-            Pages = [];
-            Map(pages);
-        }
+        public VirtualMemory64(Page64[] pages) => Map(pages);
 
         /// <summary>
         /// Replace the existing pages with the new ones
@@ -59,23 +48,8 @@
             throw new AddressOutOfBoundsException($"Address {address:X} does not exist in this virtual memory");
         }
 
-        public Page64 GetPage(ulong address)
-        {
-            return Pages[LookupPage(address)];
-        }
-
-        public byte[] Read(ulong offset, uint size)
-        {
-            var pageAddr = LookupPage(offset);
-            var page = Pages[pageAddr];
-            return page.Read(offset, size);
-        }
-
-        public void Write(ulong address, byte[] data, ulong size)
-        {
-            var pageAddr = LookupPage(address);
-            var page = Pages[pageAddr];
-            page.Write(address, size, data);
-        }
+        public Page64 GetPage(ulong address) => Pages[LookupPage(address)];
+        public byte[] Read(ulong offset, uint size) => GetPage(offset).Read(offset, size);
+        public void Write(ulong address, byte[] data, ulong size) => GetPage(address).Write(address, size, data);
     }
 }

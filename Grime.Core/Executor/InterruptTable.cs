@@ -7,13 +7,13 @@
              { 0x80, syscall }
          };
 
-        public static InstructionSetExecutor GetInterrupt(uint interrupt, CPU cpu)
+        public static ulong Execute(uint interrupt, CPU cpu)
         {
             if (!Interrupts.TryGetValue(interrupt, out InstructionSetExecutor? executor))
             {
                 throw new InvalidInstructionException($"Invalid interrupt {interrupt:X}");
             }
-            return executor;
+            return executor(cpu);
         }
 
         private unsafe static ulong syscall(CPU cpu)
