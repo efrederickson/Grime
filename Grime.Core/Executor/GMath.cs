@@ -25,15 +25,12 @@
         /// <returns></returns>
         public static byte SignedToUnsigned(sbyte value)
         {
-            unchecked
+            if (value >= 0)
             {
-                if (value >= 0)
-                {
-                    return (byte)value;
-                }
-
-                return (byte)((byte)(~value) + 1);
+                return (byte)value;
             }
+
+            return (byte)((byte)(~value) + 1);
         }
 
         /// <summary>
@@ -41,16 +38,13 @@
         /// </summary>
         public static int UnsignedToSigned(uint value)
         {
-            unchecked
+            if ((value & 0x8000) == 0)
             {
-                if ((value & 0x8000) == 0)
-                {
-                    return (int)value; // Positive number
-                }
-
-                var r = (int)((value & 0x7FFF) - (value & 0x8000));
-                return r;
+                return (int)value; // Positive number
             }
+
+            var r = (int)((value & 0x7FFF) - (value & 0x8000));
+            return r;
         }
     }
 }

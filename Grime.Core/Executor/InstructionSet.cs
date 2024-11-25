@@ -86,10 +86,7 @@
             Console.WriteLine($"0x74 JE/JZ {addr:X} (ZF={zf})");
             if (zf == (ulong)RFlags.ZERO_FLAG__)
             {
-                unchecked
-                {
-                    cpu.rip += (ulong)addr;
-                }
+                cpu.rip += (ulong)addr;
             }
             return 0;
         }
@@ -303,7 +300,7 @@
             cpu.Push((uint)cpu.rip);
             // FIXME: this only works by not overflowing a ulong lol
             Console.Write($"0xE8 CALL {addr:X} ({signedAddr})");
-            unchecked { cpu.rip += (ulong)signedAddr; }
+            cpu.rip += (ulong)signedAddr;
             Console.WriteLine($" (resulting rip={cpu.rip:X})");
             return 0;
         }
@@ -316,10 +313,7 @@
             var jmp = GMath.UnsignedToSigned(*cpu.instructionPtr);
             Console.Write($"0xEB JMP {*cpu.instructionPtr++:X} ({jmp:X}) ");
             cpu.rip++; // Size of jump address (byte)
-            unchecked
-            {
-                cpu.rip += (ulong)jmp;
-            }
+            cpu.rip += (ulong)jmp;
             Console.WriteLine($" (resulting address {cpu.rip:X})");
             return 0;
         }

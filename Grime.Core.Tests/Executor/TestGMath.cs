@@ -3,7 +3,7 @@
 namespace Grime.Core.Tests.Executor
 {
     [TestClass]
-    public sealed class TestMath
+    public sealed class TestGMath
     {
         [TestMethod]
         public void TestUnsignedToSigned()
