@@ -7,7 +7,7 @@
              { 0x80, syscall }
          };
 
-        public static ulong Execute(uint interrupt, CPU cpu)
+        public static RFlags Execute(uint interrupt, CPU cpu)
         {
             if (!Interrupts.TryGetValue(interrupt, out InstructionSetExecutor? executor))
             {
@@ -16,7 +16,7 @@
             return executor(cpu);
         }
 
-        private unsafe static ulong syscall(CPU cpu)
+        private unsafe static RFlags syscall(CPU cpu)
         {
             uint syscall = (uint)cpu.rax;
             return Syscalls.Execute(syscall, cpu);

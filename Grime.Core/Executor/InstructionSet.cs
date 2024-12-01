@@ -1,6 +1,6 @@
 ﻿namespace Grime.Core.Executor
 {
-    public unsafe delegate ulong InstructionSetExecutor(CPU cpu);
+    public unsafe delegate RFlags InstructionSetExecutor(CPU cpu);
 
     /// <summary>
     /// Provide decoding and execution implementation of instructions
@@ -54,20 +54,22 @@
         /// <summary>
         /// CMP r/m16,r32
         /// </summary>
-        unsafe static ulong Op_0x39(CPU cpu)
+        unsafe static RFlags Op_0x39(CPU cpu)
         {
             // http://sparksandflames.com/files/x86InstructionChart.html
             // CMP Ev Gv
-            // E=A ModR/M byte follows the opcode and specifies the operand. The operand is either a general-purpose register or a memory address. If it is a memory address, the address is computed from a segment register and any of the following values: a base register, an index register, a scaling factor, a displacement.
+            // E=A ModR/M byte follows the opcode and specifies the operand.
+            // The operand is either a general-purpose register or a memory address.
+            // If it is a memory address, the address is computed from a segment register and any of the following values: a base register, an index register, a scaling factor, a displacement.
             // G=The reg field of the ModR/M byte selects a general register (for example, AX (000)).
             // v=Word or doubleword, depending on operand-size attribute.
-            var e = cpu.DecodeRM((byte)(*cpu.instructionPtr >> 3));
-            var g = cpu.DecodeRM(*cpu.instructionPtr);
+            uint* e = cpu.DecodeRM((byte)(*cpu.instructionPtr >> 3));
+            uint* g = cpu.DecodeRM(*cpu.instructionPtr);
             Console.WriteLine($"0x39 CMP {*e:X} {*g:X}");
             cpu.rip++; // mod r/m byte
             if (*e == *g)
             {
-                return (ulong)RFlags.ZERO_FLAG__;
+                return RFlags.ZERO_FLAG__;
             }
 
             return 0;
@@ -78,13 +80,13 @@
         /// </summary>
         /// <param name="cpu"></param>
         /// <returns></returns>
-        unsafe static ulong Op_0x74(CPU cpu)
+        unsafe static RFlags Op_0x74(CPU cpu)
         {
             var addr = GMath.UnsignedToSigned(*cpu.instructionPtr++);
             cpu.rip++; // jump byte
-            ulong zf = cpu.rflags & (ulong)RFlags.ZERO_FLAG__;
+            RFlags zf = cpu.rflags & RFlags.ZERO_FLAG__;
             Console.WriteLine($"0x74 JE/JZ {addr:X} (ZF={zf})");
-            if (zf == (ulong)RFlags.ZERO_FLAG__)
+            if (zf == RFlags.ZERO_FLAG__)
             {
                 cpu.rip += (ulong)addr;
             }
@@ -94,7 +96,7 @@
         /// <summary>
         /// Overloaded opcode
         /// </summary>
-        unsafe static ulong Op_0x83(CPU cpu)
+        unsafe static RFlags Op_0x83(CPU cpu)
         {
             // See: https://stackoverflow.com/questions/26607462/x86-opcode-instruction-decoding
             // http://ref.x86asm.net/coder64.html#x83
@@ -113,23 +115,23 @@
             };
         }
 
-        unsafe static ulong Op_0x83_0_ADD(CPU cpu, byte register)
+        unsafe static RFlags Op_0x83_0_ADD(CPU cpu, byte register)
         {
             // 83 /0 ib	ADD r/m16, imm8	Add sign-extended imm8 to r/m16
             // 83 /0 ib ADD r/m32, imm8 Add sign-extended imm8 to r/m32
             // The OF, SF, ZF, AF, CF, and PF flags are set according to the result.
-            byte* dest = cpu.DecodeRM(register);
+            uint* dest = cpu.DecodeRM(register);
             var immediate = *++cpu.instructionPtr;
             Console.WriteLine($"0x83 ADD {*dest} imm {immediate}");
             *dest += immediate;
             cpu.rip++; // for immediate byte
-            return (ulong)RFlags.CARRY_FLAG_; // FIXME: set flags
+            return RFlags.CARRY_FLAG_; // FIXME: set flags
         }
 
         /// <summary>
         /// MOV 
         /// </summary>
-        unsafe static ulong Op_0x89(CPU cpu)
+        unsafe static RFlags Op_0x89(CPU cpu)
         {
             byte* loc = cpu.DecodeModRM(cpu.instructionPtr);
             var memAddr = ReadUInt32LE(cpu.instructionPtr);
@@ -144,7 +146,7 @@
         /// MOV r16/32 r/m 16/32
         /// mov Gv, Ev
         /// </summary>
-        unsafe static ulong Op_0x8B(CPU cpu)
+        unsafe static RFlags Op_0x8B(CPU cpu)
         {
             byte* loc = cpu.DecodeModRM(cpu.instructionPtr);
             var memAddr = ReadUInt32LE(cpu.instructionPtr);
@@ -158,7 +160,7 @@
             return 0;
         }
 
-        unsafe static ulong Op_0x90(CPU cpu)
+        unsafe static RFlags Op_0x90(CPU cpu)
         {
             Console.WriteLine("0x90 NOP");
             return 0;
@@ -167,7 +169,7 @@
         /// <summary>
         /// MOV immediate DWORD into EAX
         /// </summary>
-        unsafe static ulong Op_0xB8(CPU cpu)
+        unsafe static RFlags Op_0xB8(CPU cpu)
         {
             uint value = ReadUInt32LE(cpu.instructionPtr);
             Console.WriteLine($"0xB8 MOV EAX, {value:X}");
@@ -179,7 +181,7 @@
         /// <summary>
         /// MOV immediate DWORD into ECX
         /// </summary>
-        unsafe static ulong Op_0xB9(CPU cpu)
+        unsafe static RFlags Op_0xB9(CPU cpu)
         {
             uint value = ReadUInt32LE(cpu.instructionPtr);
             Console.WriteLine($"0xB9 MOV ECX, {value:X}");
@@ -191,7 +193,7 @@
         /// <summary>
         /// MOV immediate DWORD into EDX
         /// </summary>
-        unsafe static ulong Op_0xBA(CPU cpu)
+        unsafe static RFlags Op_0xBA(CPU cpu)
         {
             uint value = ReadUInt32LE(cpu.instructionPtr);
             Console.WriteLine($"0xBA MOV EDX, {value:X}");
@@ -203,7 +205,7 @@
         /// <summary>
         /// MOV immediate DWORD into EBX
         /// </summary>
-        unsafe static ulong Op_0xBB(CPU cpu)
+        unsafe static RFlags Op_0xBB(CPU cpu)
         {
             uint value = ReadUInt32LE(cpu.instructionPtr);
             Console.WriteLine($"0xBB MOV EBX, {value:X}");
@@ -215,7 +217,7 @@
         /// <summary>
         /// MOV immediate DWORD into ESP
         /// </summary>
-        unsafe static ulong Op_0xBC(CPU cpu)
+        unsafe static RFlags Op_0xBC(CPU cpu)
         {
             uint value = ReadUInt32LE(cpu.instructionPtr);
             Console.WriteLine($"0xBC MOV ESP, {value:X}");
@@ -227,7 +229,7 @@
         /// <summary>
         /// MOV immediate DWORD into EBP
         /// </summary>
-        unsafe static ulong Op_0xBD(CPU cpu)
+        unsafe static RFlags Op_0xBD(CPU cpu)
         {
             uint value = ReadUInt32LE(cpu.instructionPtr);
             Console.WriteLine($"0xBD MOV EBP, {value:X}");
@@ -239,7 +241,7 @@
         /// <summary>
         /// MOV immediate DWORD into ESI
         /// </summary>
-        unsafe static ulong Op_0xBE(CPU cpu)
+        unsafe static RFlags Op_0xBE(CPU cpu)
         {
             uint value = ReadUInt32LE(cpu.instructionPtr);
             Console.WriteLine($"0xB8 MOV ESI, {value:X}");
@@ -251,7 +253,7 @@
         /// <summary>
         /// MOV immediate DWORD into EDI
         /// </summary>
-        unsafe static ulong Op_0xBF(CPU cpu)
+        unsafe static RFlags Op_0xBF(CPU cpu)
         {
             uint value = ReadUInt32LE(cpu.instructionPtr);
             Console.WriteLine($"0xBF MOV EDI, {value:X}");
@@ -265,7 +267,7 @@
         /// </summary>
         /// <param name="cpu"></param>
         /// <returns></returns>
-        unsafe static ulong Op_0xC3(CPU cpu)
+        unsafe static RFlags Op_0xC3(CPU cpu)
         {
             var addr = cpu.Pop();
             Console.WriteLine($"0xC3 RET (to {addr:X})");
@@ -279,7 +281,7 @@
         /// <param name="cpu"></param>
         /// <param name="cpu.instructionPtr"></param>
         /// <returns></returns>
-        unsafe static ulong Op_0xCD(CPU cpu)
+        unsafe static RFlags Op_0xCD(CPU cpu)
         {
             Console.WriteLine($"0xCD INT {*cpu.instructionPtr:X}");
             cpu.rip++;
@@ -291,7 +293,7 @@
         /// </summary>
         /// <param name="cpu"></param>
         /// <returns></returns>
-        unsafe static ulong Op_0xE8(CPU cpu)
+        unsafe static RFlags Op_0xE8(CPU cpu)
         {
             uint addr = ReadUInt32LE(cpu.instructionPtr);
             int signedAddr = GMath.UnsignedToSigned(addr);
@@ -307,7 +309,7 @@
         /// <summary>
         /// JMP byte
         /// </summary>
-        unsafe static ulong Op_0xEB(CPU cpu)
+        unsafe static RFlags Op_0xEB(CPU cpu)
         {
             var jmp = GMath.UnsignedToSigned(*cpu.instructionPtr);
             Console.Write($"0xEB JMP {*cpu.instructionPtr++:X} ({jmp:X}) ");

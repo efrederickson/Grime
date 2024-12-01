@@ -35,7 +35,7 @@ namespace Grime.Interpreter
             }
 
             // .symtab and .strtab
-            ELFReader.ReadSymTable(elf, s);
+            ReadSymTab(elf, s);
 
             // Read segments
             var pages = ELFReader.ReadAndAlignSegments(elf, s);
@@ -54,6 +54,38 @@ namespace Grime.Interpreter
 
             }
             Console.WriteLine("\nDone analyzing\n");
+        }
+
+        static void ReadSymTab(ELF64 elf, Stream stream)
+        {
+            Console.WriteLine("read symtab");
+            // Find sym tab
+            SectionHeader64 symtab = elf.SectionHeaders[0]; // FIXME
+            foreach (var sheader in elf.SectionHeaders)
+            {
+                if (sheader.type == SHType.SHT_SYMTAB)
+                {
+                    symtab = sheader;
+                    break;
+                }
+            }
+            if (!symtab.Equals(elf.SectionHeaders[0]) && symtab.type != SHType.SHT_SYMTAB)
+            {
+                throw new InvalidElfException("Missing SYMTAB section");
+            }
+
+            Console.WriteLine($"symtab {symtab} {ELFReader.ReadString(stream, elf, elf.Header.e_shstrndx, symtab.name)}");
+            long pos = (long)symtab.offset;
+            var entries = symtab.size / symtab.entsize;
+            ulong i = 0;
+            while (i < entries)
+            {
+                stream.Seek(pos, SeekOrigin.Begin);
+                var sym = ELFReader.ReadSymbol(stream);
+                var name = ELFReader.ReadString(stream, elf, symtab.link, sym.name);
+                Console.WriteLine($"symbol {i++} {sym} {name}");
+                pos += (long)symtab.entsize;
+            }
         }
     }
 }

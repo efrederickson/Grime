@@ -11,7 +11,7 @@ namespace Grime.Core.Executor
             { 0x04, write }
         };
 
-        public static ulong Execute(uint syscall, CPU cpu)
+        public static RFlags Execute(uint syscall, CPU cpu)
         {
             if (!SyscallMapping.TryGetValue(syscall, out InstructionSetExecutor? executor))
             {
@@ -20,13 +20,13 @@ namespace Grime.Core.Executor
             return executor(cpu);
         }
 
-        static unsafe ulong exit(CPU cpu)
+        static unsafe RFlags exit(CPU cpu)
         {
             cpu.Exit();
             return 0;
         }
 
-        static unsafe ulong read(CPU cpu)
+        static unsafe RFlags read(CPU cpu)
         {
             // same as write's fixmes
             uint fd = (uint)cpu.rbx;
@@ -42,7 +42,7 @@ namespace Grime.Core.Executor
             return 0;
         }
 
-        static unsafe ulong write(CPU cpu)
+        static unsafe RFlags write(CPU cpu)
         {
             // FIXME: casts 
             // FIXME: respect fd

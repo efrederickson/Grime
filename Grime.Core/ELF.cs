@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Grime.Core
@@ -283,7 +283,7 @@ namespace Grime.Core
         /// Type of segment.
         /// </summary>
         public PType type;
-        
+
         /// <summary>
         /// Relevant flags for the segment
         /// </summary>
@@ -377,6 +377,27 @@ namespace Grime.Core
         public readonly override string ToString()
         {
             return $"<Section name={name} type={type} flags={flags} addr={addr} offset={offset} size={size} link={link} info={info} addralign={addralign} entsize={entsize}>";
+        }
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            if (obj is not SectionHeader64)
+            {
+                return false;
+            }
+            SectionHeader64 obj2 = (SectionHeader64)obj;
+            return (
+                obj2.name == name
+                && obj2.type == type
+                && obj2.flags == flags
+                && obj2.addr == addr
+                && obj2.offset == offset
+                && obj2.size == size
+                && obj2.link == link
+                && obj2.info == info
+                && obj2.addralign == addralign
+                && obj2.entsize == entsize
+            );
         }
     }
 
@@ -481,7 +502,7 @@ namespace Grime.Core
         }
     }
 
-    public enum SymInfo:byte
+    public enum SymInfo : byte
     {
         STT_NOTYPE = 0, // Symbol type is unspecified
         STT_OBJECT = 1, // Symbol is a data object

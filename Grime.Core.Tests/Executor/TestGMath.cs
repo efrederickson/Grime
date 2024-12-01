@@ -15,7 +15,7 @@ namespace Grime.Core.Tests.Executor
         public void TestSignedToUnsigned()
         {
             var res = GMath.SignedToUnsigned(-63);
-            Assert.IsTrue(res == 0b1100001, $"Expected 0b1100001 got {res:B}");
+            Assert.IsTrue(res == 0b11000001, $"Expected 0b11000001 got {res:B}");
         }
     }
 }

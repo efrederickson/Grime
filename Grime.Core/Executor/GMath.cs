@@ -25,12 +25,7 @@
         /// <returns></returns>
         public static byte SignedToUnsigned(sbyte value)
         {
-            if (value >= 0)
-            {
-                return (byte)value;
-            }
-
-            return (byte)((byte)(~value) + 1);
+            return (byte)value;
         }
 
         /// <summary>
