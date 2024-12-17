@@ -41,7 +41,7 @@
         /// <summary>
         /// Read little endian uint32 from ptr
         /// </summary>
-        static unsafe uint ReadUInt32LE(byte* ptr)
+        public static unsafe uint ReadUInt32LE(byte* ptr)
         {
             return (uint)(
                 *ptr++ |
@@ -63,9 +63,9 @@
             // If it is a memory address, the address is computed from a segment register and any of the following values: a base register, an index register, a scaling factor, a displacement.
             // G=The reg field of the ModR/M byte selects a general register (for example, AX (000)).
             // v=Word or doubleword, depending on operand-size attribute.
-            uint* e = cpu.DecodeRM((byte)(*cpu.instructionPtr >> 3));
-            uint* g = cpu.DecodeRM(*cpu.instructionPtr);
-            Console.WriteLine($"0x39 CMP {*e:X} {*g:X}");
+            byte* e = cpu.DecodeRM((byte)(*cpu.instructionPtr >> 3));
+            byte* g = cpu.DecodeRM(*cpu.instructionPtr);
+            Console.WriteLine($"0x39 CMP {*(uint*)e:X} {*(uint*)g:X}");
             cpu.rip++; // mod r/m byte
             if (*e == *g)
             {
@@ -120,7 +120,7 @@
             // 83 /0 ib	ADD r/m16, imm8	Add sign-extended imm8 to r/m16
             // 83 /0 ib ADD r/m32, imm8 Add sign-extended imm8 to r/m32
             // The OF, SF, ZF, AF, CF, and PF flags are set according to the result.
-            uint* dest = cpu.DecodeRM(register);
+            byte* dest = cpu.DecodeRM(register);
             var immediate = *++cpu.instructionPtr;
             Console.WriteLine($"0x83 ADD {*dest} imm {immediate}");
             *dest += immediate;
@@ -148,9 +148,20 @@
         /// </summary>
         unsafe static RFlags Op_0x8B(CPU cpu)
         {
-            byte* loc = cpu.DecodeModRM(cpu.instructionPtr);
+            //byte* loc = cpu.DecodeModRM(cpu.instructionPtr);
+            byte* loc = cpu.DecodeRM((byte)(*cpu.instructionPtr >> 3));
+            cpu.instructionPtr += 2;
+            cpu.rip += 2;
             var memAddr = ReadUInt32LE(cpu.instructionPtr);
             byte[] data = cpu.Memory.Read(memAddr, 4);
+
+            //*loc = (uint)(
+            //    data[0] |
+            //    data[1] << 8 |
+            //    data[2] << 16 |
+            //    data[3] << 24
+            //);
+
             *loc = data[0];
             *(loc + 1) = data[1];
             *(loc + 2) = data[2];

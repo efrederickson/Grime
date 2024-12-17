@@ -188,20 +188,21 @@
         /// </summary>
         /// <param name="modrm">ModR/M byte</param>
         /// <returns>Pointer to appropriate register</returns>
-        public unsafe uint* DecodeRM(byte modrm)
+        public unsafe byte* DecodeRM(byte modrm)
         {
             // See Table 2-2. 32-Bit Addressing Forms with the ModR/M Byte in the Intel manual
             switch (modrm & 0b00000111)
             {
                 // FIXME: map from rXX to eXX
-                case 0b00000000: { fixed (ulong* p = &rax) { return (uint*)(p + (sizeof(uint))); } }
-                case 0b00000001: { fixed (ulong* p = &rcx) { return (uint*)p + (sizeof(uint)); }; }
-                case 0b00000010: { fixed (ulong* p = &rdx) { return (uint*)p + (sizeof(uint)); }; }
-                case 0b00000011: { fixed (ulong* p = &rbx) { return (uint*)p + (sizeof(uint)); }; }
+                // (byte*)(p + (sizeof(ulong) / 2))
+                case 0b00000000: { fixed (ulong* p = &rax) { return (byte*)(p); } }
+                case 0b00000001: { fixed (ulong* p = &rcx) { return (byte*)(p); }; }
+                case 0b00000010: { fixed (ulong* p = &rdx) { return (byte*)(p); }; }
+                case 0b00000011: { fixed (ulong* p = &rbx) { return (byte*)(p); }; }
                 case 0b00000100: { throw new NotImplementedException($"Not implemented and/or need to reference SIB byte"); }
                 case 0b00000101: { throw new NotImplementedException($"disp32 not implemented"); }
-                case 0b00000111: { fixed (ulong* p = &rdi) { return (uint*)p + (sizeof(uint)); }; }
-                case 0b00000110: { fixed (ulong* p = &rsi) { return (uint*)p + (sizeof(uint)); }; }
+                case 0b00000111: { fixed (ulong* p = &rdi) { return (byte*)(p); }; }
+                case 0b00000110: { fixed (ulong* p = &rsi) { return (byte*)(p); }; }
                 default:
                     throw new InvalidInstructionException($"Impossible! modrm mod bytes {modrm:b} matches no binary case");
             };
@@ -222,14 +223,14 @@
             // Mod R/M 0x04  Mod=00 000 100
             // SIB 0x25
 
-            // I cannot figure this mod/rm+sib out. hardcoding known values for now
             if (*instructionPointer == 0x04 && *(instructionPointer + 1) == 0x25)
             {
                 fixed (ulong* addr = &rax)
                 {
                     instructionPtr += 2;
                     rip += 2;
-                    return (byte*)addr + (sizeof(uint)); // FIXME Go from RAX to EAX
+                    // + (sizeof(ulong) / 2))
+                    return (byte*)(addr); // FIXME Go from RAX to EAX
                 }
             }
             if (*instructionPointer == 0x1C)
@@ -238,7 +239,7 @@
                 {
                     instructionPtr += 2;
                     rip += 2;
-                    return (byte*)addr + (sizeof(uint)); // FIXME Go from R to E
+                    return (byte*)(addr); // FIXME Go from R to E
                 }
             }
 
