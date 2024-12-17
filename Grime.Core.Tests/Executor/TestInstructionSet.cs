@@ -42,11 +42,8 @@ namespace Grime.Core.Tests.Executor
                 0x00, 0x00, 0x00, 0x00
             ]);
             cpu.Cycle();
-            Console.WriteLine($"cpu.rax = {cpu.rax} {cpu.rbx}");
             cpu.Cycle();
-            Console.WriteLine($"cpu.rax = {cpu.rax}");
             cpu.Cycle();
-            Console.WriteLine($"cpu.rax = {cpu.rax}");
 
             Assert.IsTrue(cpu.rax == 1);
             Assert.IsTrue(cpu.rbx == 0);
